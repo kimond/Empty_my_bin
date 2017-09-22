@@ -1,8 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
+
+import 'src/Bin.dart';
 
 final googleSignIn = new GoogleSignIn();
+final auth = FirebaseAuth.instance;
 
 void main() {
   runApp(new MyApp());
@@ -31,13 +36,20 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  List<Bin> _bins = [];
+  final _binRef = FirebaseDatabase.instance.reference().child('bins');
 
-  Future<Null> _incrementCounter() async {
-    setState(() {
-      _counter++;
-    });
+  Future<Null> _createBin() async {
     await _ensureLoggedIn();
+    _binRef.push().set({
+      'name': 'newBin',
+      'isFull': false,
+    });
+
+    setState(() {
+      Bin newBin = new Bin('new bin', false);
+      _bins.add(newBin);
+    });
   }
 
   Future<Null> _ensureLoggedIn() async {
@@ -46,6 +58,21 @@ class _MyHomePageState extends State<MyHomePage> {
     if (user == null) {
       await googleSignIn.signIn();
     }
+    if (await auth.currentUser() == null) {
+      GoogleSignInAuthentication credentials =
+          await googleSignIn.currentUser.authentication;
+      await auth.signInWithGoogle(
+        idToken: credentials.idToken,
+        accessToken: credentials.accessToken,
+      );
+    }
+  }
+
+  Future<Null> _deleteBin(Bin bin) async {
+    await _ensureLoggedIn();
+    setState(() {
+      _bins.remove(bin);
+    });
   }
 
   @override
@@ -54,23 +81,23 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: new AppBar(
         title: new Text(widget.title),
       ),
-      body: new Center(
-        child: new Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            new Text(
-              'You have pushed the button this many times:',
-            ),
-            new Text(
-              '${_counter}',
-              style: Theme.of(context).textTheme.display1,
-            ),
-          ],
-        ),
+      body: new ListView.builder(
+        itemCount: _bins.length,
+        itemBuilder: (BuildContext context, int index) {
+          return new ListTile(
+              trailing: new IconButton(
+                icon: const Icon(Icons.delete, color: Colors.red),
+                tooltip: 'Delete the bin',
+                onPressed: () {
+                  _deleteBin(_bins[index]);
+                },
+              ),
+              title: new Text(_bins[index].name));
+        },
       ),
       floatingActionButton: new FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
+        onPressed: _createBin,
+        tooltip: 'Create bin',
         child: new Icon(Icons.add),
       ),
     );
