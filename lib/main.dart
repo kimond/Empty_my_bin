@@ -41,13 +41,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<Null> _createBin() async {
     await _ensureLoggedIn();
-    _binRef.push().set({
-      'name': 'newBin',
-      'isFull': false,
-    });
-
+    Bin newBin = new Bin('new bin', false);
+    _binRef.push().set(newBin.toJson());
     setState(() {
-      Bin newBin = new Bin('new bin', false);
       _bins.add(newBin);
     });
   }
