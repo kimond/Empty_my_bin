@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_database/ui/firebase_animated_list.dart';
 
 import 'src/Bin.dart';
 
@@ -36,16 +37,17 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<Bin> _bins = [];
   final _binRef = FirebaseDatabase.instance.reference().child('bins');
 
   Future<Null> _createBin() async {
     await _ensureLoggedIn();
     Bin newBin = new Bin('new bin', false);
     _binRef.push().set(newBin.toJson());
-    setState(() {
-      _bins.add(newBin);
-    });
+  }
+
+  Future<Null> _deleteBin(String key) async {
+    await _ensureLoggedIn();
+    _binRef.child(key).remove();
   }
 
   Future<Null> _ensureLoggedIn() async {
@@ -64,32 +66,27 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  Future<Null> _deleteBin(Bin bin) async {
-    await _ensureLoggedIn();
-    setState(() {
-      _bins.remove(bin);
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
       appBar: new AppBar(
         title: new Text(widget.title),
       ),
-      body: new ListView.builder(
-        itemCount: _bins.length,
-        itemBuilder: (BuildContext context, int index) {
-          return new ListTile(
-              trailing: new IconButton(
-                icon: const Icon(Icons.delete, color: Colors.red),
-                tooltip: 'Delete the bin',
-                onPressed: () {
-                  _deleteBin(_bins[index]);
-                },
-              ),
-              title: new Text(_bins[index].name));
-        },
+      body: new Column(
+        children: <Widget>[
+          new Flexible(
+            child: new FirebaseAnimatedList(
+              query: _binRef,
+              itemBuilder: (_, DataSnapshot snapshot, Animation animation, int index) {
+                return new BinTile(
+                  snapshot: snapshot,
+                  animation: animation,
+                  onDelete: _deleteBin
+                );
+              },
+            ),
+          )
+        ],
       ),
       floatingActionButton: new FloatingActionButton(
         onPressed: _createBin,
@@ -97,5 +94,29 @@ class _MyHomePageState extends State<MyHomePage> {
         child: new Icon(Icons.add),
       ),
     );
+  }
+}
+
+@override
+class BinTile extends StatelessWidget {
+  BinTile({this.snapshot, this.animation, this.onDelete});
+
+  final DataSnapshot snapshot;
+  final Animation animation;
+  final ValueChanged<String> onDelete;
+
+  void _handleDelete() {
+    onDelete(snapshot.key);
+  }
+
+  Widget build(BuildContext context) {
+    return new SizeTransition(
+        sizeFactor:
+            new CurvedAnimation(parent: animation, curve: Curves.easeInOut),
+        child: new ListTile(
+
+          title: new Text(snapshot.value['name']),
+          trailing: new IconButton(icon: new Icon(Icons.delete, color: Colors.red,), onPressed: _handleDelete),
+        ));
   }
 }
