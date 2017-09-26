@@ -20,6 +20,9 @@ class BinTile extends StatelessWidget {
         child: new ListTile(
           title: new Text(snapshot.value['name']),
           trailing: new IconButton(icon: new Icon(Icons.delete, color: Colors.red,), onPressed: _handleDelete),
+          onTap: () {
+            Navigator.pushNamed(context, '/bin-detail');
+          },
         ));
   }
 }
