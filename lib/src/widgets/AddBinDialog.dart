@@ -13,29 +13,45 @@ class AddBinDialog extends StatefulWidget {
 class AddBinDialogState extends State<AddBinDialog> {
   final _binRef = FirebaseDatabase.instance.reference().child('bins');
 
+  final TextEditingController _binNameController = new TextEditingController();
+
   Future<Null> _createBin() async {
     await ensureLoggedIn();
-    Bin newBin = new Bin('new bin', false);
+    String binName = _binNameController.text;
+    Bin newBin = new Bin(binName, false);
     _binRef.push().set(newBin.toJson());
   }
 
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-      appBar: new AppBar(
-        title: const Text('New bin'),
-        actions: [
-          new FlatButton(
-              onPressed: () {},
-              child: new Text('SAVE',
-                  style: Theme
-                      .of(context)
-                      .textTheme
-                      .subhead
-                      .copyWith(color: Colors.white))),
-        ],
-      ),
-      body: new Text("Foo"),
-    );
+        appBar: new AppBar(
+          title: const Text('New bin'),
+          actions: [
+            new FlatButton(
+                onPressed: () {
+                  _createBin();
+                  Navigator.of(context).pop();
+                },
+                child: new Text('SAVE',
+                    style: Theme
+                        .of(context)
+                        .textTheme
+                        .subhead
+                        .copyWith(color: Colors.white))),
+          ],
+        ),
+        body: new Container(
+          padding: new EdgeInsets.all(8.0),
+          child: new Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              new TextField(
+                controller: _binNameController,
+                decoration: new InputDecoration(hintText: 'Type the bin name'),
+              )
+            ],
+          ),
+        ));
   }
 }
