@@ -10,7 +10,6 @@ void main() {
 class MyApp extends StatelessWidget {
   final Map<String, WidgetBuilder> routes = {
     '/': (BuildContext c) => new HomePage(),
-    '/bin-detail': (BuildContext c) => new BinDetail(),
   };
   @override
   Widget build(BuildContext context) {
