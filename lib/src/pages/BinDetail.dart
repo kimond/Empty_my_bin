@@ -11,6 +11,16 @@ class BinDetail extends StatelessWidget {
       appBar: new AppBar(
         title: new Text(bin.name),
       ),
+      body: new Container(
+        padding: new EdgeInsets.all(8.0),
+        child: new Column(
+          children: <Widget>[
+            bin.imageUrl != "" && bin.imageUrl != null
+                ? new Image.network(bin.imageUrl)
+                : new Icon(Icons.photo),
+          ],
+        ),
+      ),
     );
   }
 }
