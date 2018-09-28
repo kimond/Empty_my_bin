@@ -1,11 +1,11 @@
 library empty_my_bin.src.bin;
 
-import 'package:json_serializable/annotations.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 part 'Bin.g.dart';
 
 @JsonSerializable()
-class Bin extends Object with _$BinSerializerMixin{
+class Bin extends Object with _$BinSerializerMixin {
   String name;
   bool isFull;
   String imageUrl;
