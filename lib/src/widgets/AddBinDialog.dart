@@ -36,7 +36,7 @@ class AddBinDialogState extends State<AddBinDialog> {
     StorageReference ref =
         FirebaseStorage.instance.ref().child("bin_image_$random.jpg");
     StorageUploadTask uploadTask = ref.put(_binImage);
-    Uri downloadUrl = (await uploadTask.future).downloadUrl;
+    Uri downloadUrl = await uploadTask.lastSnapshot.ref.getDownloadURL();
 
     return downloadUrl.toString();
   }
